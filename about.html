@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Heist</title>
+    <link rel="STYLESHEET" href="./style.css">
+    <title>About Heist</title>
+</head>
+<body>
+    <header>
+        <h1>Heist: About</h2>
+        <a href="./">Compiler</a> &sdot; <a href="./about">About</a>
+    </header>
+    
+    <main>
+    <h2>What is Heist?</h2>
+    <p>Heist is a compiled, loosely invertible<sup><a href="#footnote1" class="footnote">1</a></sup> <a href="https://en.wikipedia.org/wiki/Esoteric_programming_language" target="_blank">esoteric language</a> (or <em>esolang</em>). The Heist compiler provided here utilizes an event-driven architecture, as opposed to the more conventional pipe-filter architecture seen in modern compilers.</p>
+    <p>As opposed to data streams which represent programs, Heist works with event streams, specifically those of keypresses. Whereas one may write <code>print(3 + 4)</code> in a language like Python, in Heist, one types the keypresses <kbd>3</kbd><kbd>l</kbd><kbd>4</kbd><kbd>r</kbd><kbd>+</kbd><kbd>;</kbd> to perform the same computation.</p>
+    <p>You can give it a spin <a href="./">here</a>!</p>
+    <div id="footnote1" class="footnote"><sup>1</sup> Invertability here is a property of a language that stipulates some or all computation is intrinsically <em>bijective</em>, or, has "undo/redo" functionality. Further reading: <a href="https://dl.acm.org/doi/10.1145/3409000" target="_blank">Sparcl: a language for partially-invertible computation</a> and <a href="https://arxiv.org/abs/2209.02422">Jeopardy: An Invertible Functional Programming Language</a>.</div>
+    <p></p>
+    <h2>Why &ldquo;Heist&rdquo;?</h2>
+    <p>The name was chosen as a play on the word <em>hoist</em>, alluding to the initial compilation strageties depending strongly on the esoteric JavaScript concept of <a href="https://developer.mozilla.org/en-US/docs/Glossary/Hoisting" target="_blank">hoisting</a>.</p>
+    <h2>How do I use Heist?</h2>
+    <p>Here is a list of keypresses and their corresponding behavior. Unless otherwise noted, all keypresses behavior is invertible with a <kbd>Backspace</kbd> keystroke. By default, the compiler does not execute the code it generates. To evaluate the code, either copy-paste the compiled JavaScript code into your favorite JavaScript interpreter, or toggle &ldquo;Enable Autoexecution&rdquo; to see the computation performed as you type.</p>
+    <ul>
+        <li><kbd>0</kbd> to <kbd>9</kbd> set the data register to the corresponding digit.</li>
+        <li><kbd>+</kbd> and <kbd>a</kbd> set the operator register to addition.</li>
+        <li><kbd>-</kbd> and <kbd>s</kbd> set the operator register to subtraction.</li>
+        <li><kbd>*</kbd> and <kbd>m</kbd> set the operator register to multiplication.</li>
+        <li><kbd>/</kbd> and <kbd>d</kbd> set the operator register to division.</li>
+        <li><kbd>l</kbd> sets the left argument register to the current value of the data register.</li>
+        <li><kbd>r</kbd> sets the right argument register to the current value of the data register.</li>
+        <li><kbd>;</kbd> executes the current operation in the operator register with the current arguments in the left and right argument registers.</li>
+        <li><kbd>Backspace</kbd> reverts the most recently made operation.</li>
+    </ul>
+    <h2>How does Heist work?</h2>
+    <p>The challenge of avoiding the conventional <a href="https://syedhasan010.medium.com/pipe-and-filter-architecture-bd7babdb908" target="_blank">pipe-filter architecture</a> in designing a compiler is significant. Even if a compiler has no explicit pipes or filters, it is trivial to, for example, draw the comparison between parsing a data stream (input file) as a basic pipe.</p>
+    <p>Enter Heist. The event-driven compiler is, as far as I can tell, a novelty in the field of compiler design. However, just as certain dubious chess openings are considered novelties, the novelty of event-driven compilers is less ground-breaking, and more sanity-questioning.</p>
+    <p><a href="https://en.wikipedia.org/wiki/Event-driven_architecture" target="_blank">Event-driven architectures</a> are quite useful for many applications, holding responsivity paramount. The crux of the Heist compiler boils down to a single event handler, a keypress listener. For each keypress, the listener emits a single "token" event which allows subscribers to record the corresponding compiled JavaScript output.</p>
+    <p>That's it. No pipes. No filters. Just two event generators and an event listener. Strictly speaking, the subscriber need not be embedded in a webpage, and even remote subscribers could reap the benefits from the Heist compiler.</p>
+    <h3>The compiled JavaScript code</h3>
+    <p>What about the compiled JavaScript code? By design, it isn't pretty, but it does work. Since we are working with individual keypress events, with no ability to anticipate future keypresses, the generated JavaScript code is quite messy. Although the base language supports a few registers, the ability to invert operations necessitates each of these registers be represented internally by a stack of registers. (I suppose you could also accomplish this by having a stack of program states. But that's less fun.)</p>
+    <p>All emitted instructions, with the exception of the undo keypress <kbd>Backspace</kbd>, takes the following form:</p>
+    <!-- <pre><code>var history = history ?? [], stacks = stacks ?? {}, result; /* code; */ result;</pre></code> -->
+    <pre><code><span style='color:#00bfff; '>var</span> history <span style='color:#deb887; font-weight:bold; '>=</span> history <span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#fa8072; font-weight:bold; '>?</span> <span style='color:#deb887; font-weight:bold; '>[</span><span style='color:#deb887; font-weight:bold; '>]</span><span style='color:#deb887; font-weight:bold; '>,</span> stacks <span style='color:#deb887; font-weight:bold; '>=</span> stacks <span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#fa8072; font-weight:bold; '>?</span> <span style='color:#fa8072; font-weight:bold; '>{</span><span style='color:#fa8072; font-weight:bold; '>}</span><span style='color:#deb887; font-weight:bold; '>,</span> result<span style='color:#fa8072; font-weight:bold; '>;</span> <span style='color:#a9a9a9; font-weight:bold; font-style:italic; '>/* additional code; */</span> result<span style='color:#fa8072; font-weight:bold; '>;</span></pre></code>
+    <p>Since I do not allow the compiler to emit header information (e.g. through an "init" event), there is initialization code for <code>history</code>, <code>stacks</code>, and a corresponding stack emitted before each instruction. The additional code handles initializing the individual stack and populating it with a value.</p>
+    <p>The most complex additional code with this template is that corresponding to the execute keypress <kbd>;</kbd>:</p>
+    <pre><code><span style='color:#00bfff; '>var</span> history <span style='color:#deb887; font-weight:bold; '>=</span> history <span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#fa8072; font-weight:bold; '>?</span> <span style='color:#deb887; font-weight:bold; '>[</span><span style='color:#deb887; font-weight:bold; '>]</span><span style='color:#deb887; font-weight:bold; '>,</span> stacks <span style='color:#deb887; font-weight:bold; '>=</span> stacks <span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#fa8072; font-weight:bold; '>?</span> <span style='color:#fa8072; font-weight:bold; '>{</span><span style='color:#fa8072; font-weight:bold; '>}</span><span style='color:#deb887; font-weight:bold; '>,</span> result<span style='color:#fa8072; font-weight:bold; '>;</span>
+stacks<span style='color:#deb887; font-weight:bold; '>[</span><span style='color:#fa8072; '>'</span><span style='color:#4084ff; '>e</span><span style='color:#fa8072; '>'</span><span style='color:#deb887; font-weight:bold; '>]</span> <span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#fa8072; font-weight:bold; '>?</span><span style='color:#deb887; font-weight:bold; '>=</span> <span style='color:#deb887; font-weight:bold; '>[</span><span style='color:#deb887; font-weight:bold; '>]</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+history<span style='color:#deb887; font-weight:bold; '>.</span>push<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#fa8072; '>'</span><span style='color:#4084ff; '>de</span><span style='color:#fa8072; '>'</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+<span style='color:#00bfff; '>if</span><span style='color:#deb887; font-weight:bold; '>(</span>stacks<span style='color:#deb887; font-weight:bold; '>.</span>l <span style='color:#deb887; font-weight:bold; '>&amp;&amp;</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>l<span style='color:#deb887; font-weight:bold; '>.</span><span style='color:#00bfff; '>length</span> <span style='color:#deb887; font-weight:bold; '>&amp;&amp;</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>r <span style='color:#deb887; font-weight:bold; '>&amp;&amp;</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>r<span style='color:#deb887; font-weight:bold; '>.</span><span style='color:#00bfff; '>length</span><span style='color:#deb887; font-weight:bold; '>)</span> <span style='color:#fa8072; font-weight:bold; '>{</span>
+    <span style='color:#00bfff; '>var</span> l <span style='color:#deb887; font-weight:bold; '>=</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>l<span style='color:#deb887; font-weight:bold; '>.</span>pop<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#deb887; font-weight:bold; '>,</span> r <span style='color:#deb887; font-weight:bold; '>=</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>r<span style='color:#deb887; font-weight:bold; '>.</span>pop<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#deb887; font-weight:bold; '>,</span> o <span style='color:#deb887; font-weight:bold; '>=</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>o<span style='color:#deb887; font-weight:bold; '>.</span>pop<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+    stacks<span style='color:#deb887; font-weight:bold; '>.</span>e<span style='color:#deb887; font-weight:bold; '>.</span>push<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#fa8072; font-weight:bold; '>{</span> l<span style='color:#deb887; font-weight:bold; '>,</span> r<span style='color:#deb887; font-weight:bold; '>,</span> o <span style='color:#fa8072; font-weight:bold; '>}</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+    stacks<span style='color:#deb887; font-weight:bold; '>.</span>d<span style='color:#deb887; font-weight:bold; '>.</span>push<span style='color:#deb887; font-weight:bold; '>(</span>result <span style='color:#deb887; font-weight:bold; '>=</span> o<span style='color:#deb887; font-weight:bold; '>(</span>l<span style='color:#deb887; font-weight:bold; '>,</span> r<span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+<span style='color:#fa8072; font-weight:bold; '>}</span>
+<span style='color:#00bfff; '>else</span> <span style='color:#fa8072; font-weight:bold; '>{</span>
+    stacks<span style='color:#deb887; font-weight:bold; '>.</span>e<span style='color:#deb887; font-weight:bold; '>.</span>push<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#fa8072; font-weight:bold; '>{</span><span style='color:#fa8072; font-weight:bold; '>}</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span> stacks<span style='color:#deb887; font-weight:bold; '>.</span>d<span style='color:#deb887; font-weight:bold; '>.</span>push<span style='color:#deb887; font-weight:bold; '>(</span><span style='color:#deb887; '>undefined</span><span style='color:#deb887; font-weight:bold; '>)</span><span style='color:#fa8072; font-weight:bold; '>;</span>
+<span style='color:#fa8072; font-weight:bold; '>}</span>
+result<span style='color:#fa8072; font-weight:bold; '>;</span></pre></code>
+    <p>Naturally, undoing an execution instruction requires restoring a lot of information, so the execution register stack holds entries from its three component input registers.</p>
+    <h2>The Future of Heist</h2>
+    <p>When I have more time, I'd like to hammer this language into something closer to turing complete. The concept has potential, as it is fairly generic; I imagine introducing first-order functions and defining useful operations on functions (like composition and iteration). I am unsure as of yet whether the planned functionality expanding in this direction will meaningfully interfere with the language's invertability.</p>
+    </main>
+    <footer>
+        An esolang by <a href="https://conorobrien-foxx.github.io/" target="_blank">Conor O'Brien</a>
+    </footer>
+</body>
+</html>

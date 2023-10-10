@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Heist</title>
+    <link rel="STYLESHEET" href="./style.css">
+    <script src="heist.js"></script>
+    <title>Heist Compiler</title>
+</head>
+<body>
+    <header>
+        <h1>Heist: Compiler</h2>
+        <a href="./">Compiler</a> &sdot; <a href="./about">About</a>
+    </header>
+    
+    <main>
+    <h2>Input</h2>
+    <input readonly id="input">
+    <button id="reset">Reset</button><button id="auto-execute-toggle" class="disabled">Enable Autoexecution</button> <span id="focus-note" class="hidden">Click the input field to enter keypresses!</span>
+    <h2>Key History</h2>
+    <div id="key-history"></div>
+    <h2>Compiled Code</h2>
+    <textarea readonly id="output" style="height: 4em"></textarea>
+    <div id="auto-execute-content" class="minimized">
+        <h2>Execution Result</h2>
+        <textarea readonly id="effect"></textarea>
+        <h2>Debug Information</h2>
+        <textarea readonly id="debug" style="height: 7em"></textarea>
+    </div>
+    </main>
+    
+    <footer>
+        An esolang by <a href="https://conorobrien-foxx.github.io/" target="_blank">Conor O'Brien</a>
+    </footer>
+</body>
+</html>
